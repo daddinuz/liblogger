@@ -35,10 +35,9 @@ int main(void) {
     logger_delete(&stream_logger_stderr);
 
     /*
-     * File Logger - PolicyNone
+     * File Logger
      */
-    logger_t *file_logger_none_policy = file_logger_new("FileLogger - PolicyNone", LOG_LEVEL_DEBUG,
-                                                        "/tmp/file-logger-none-policy.log", LOG_MODE_WRITE, LOG_POLICY_NONE, 0);
+    logger_t *file_logger_none_policy = file_logger_new("FileLogger", LOG_LEVEL_DEBUG, "/tmp/file-logger.log", LOG_MODE_WRITE);
     log_debug   (file_logger_none_policy, TRACE("%s\n\n"), "Debug log");
     log_notice  (file_logger_none_policy, TRACE("%s\n\n"), "Notice log");
     log_info    (file_logger_none_policy, TRACE("%s\n\n"), "Info log");
@@ -48,10 +47,9 @@ int main(void) {
     logger_delete(&file_logger_none_policy);
 
     /*
-     * File Logger - PolicyRotate
+     * Rotating File Logger
      */
-    logger_t *file_logger_rotate_policy = file_logger_new("FileLogger - PolicyRotate", LOG_LEVEL_DEBUG,
-                                                          "/tmp/file-logger-rotate-policy.log", LOG_MODE_WRITE, LOG_POLICY_ROTATE, 15);
+    logger_t *file_logger_rotate_policy = rotating_logger_new("RotatingFileLogger", LOG_LEVEL_DEBUG, "/tmp/rotating-file-logger.log", 15);
     log_debug   (file_logger_rotate_policy, TRACE("%s\n\n"), "Debug log");
     log_notice  (file_logger_rotate_policy, TRACE("%s\n\n"), "Notice log");
     log_info    (file_logger_rotate_policy, TRACE("%s\n\n"), "Info log");
@@ -61,17 +59,16 @@ int main(void) {
     logger_delete(&file_logger_rotate_policy);
 
     /*
-     * File Logger - PolicyOverwrite
+     * Buffer File Logger
      */
-    logger_t *file_logger_overwrite_policy = file_logger_new("FileLogger - PolicyOverwrite", LOG_LEVEL_DEBUG,
-                                                             "/tmp/file-logger-overwrite-policy.log", LOG_MODE_WRITE, LOG_POLICY_OVERWRITE, 15);
-    log_debug   (file_logger_overwrite_policy, TRACE("%s\n\n"), "Debug log");
-    log_notice  (file_logger_overwrite_policy, TRACE("%s\n\n"), "Notice log");
-    log_info    (file_logger_overwrite_policy, TRACE("%s\n\n"), "Info log");
-    log_warning (file_logger_overwrite_policy, TRACE("%s\n\n"), "Warning log");
-    log_error   (file_logger_overwrite_policy, TRACE("%s\n\n"), "Error log");
-    log_fatal   (file_logger_overwrite_policy, TRACE("%s\n\n"), "Fatal log");
-    logger_delete(&file_logger_overwrite_policy);
+    logger_t *file_logger_buffer_policy = buffer_logger_new("BufferFileLogger", LOG_LEVEL_DEBUG, "/tmp/buffer-file-logger.log", LOG_MODE_WRITE, 15);
+    log_debug   (file_logger_buffer_policy, TRACE("%s\n\n"), "Debug log");
+    log_notice  (file_logger_buffer_policy, TRACE("%s\n\n"), "Notice log");
+    log_info    (file_logger_buffer_policy, TRACE("%s\n\n"), "Info log");
+    log_warning (file_logger_buffer_policy, TRACE("%s\n\n"), "Warning log");
+    log_error   (file_logger_buffer_policy, TRACE("%s\n\n"), "Error log");
+    log_fatal   (file_logger_buffer_policy, TRACE("%s\n\n"), "Fatal log");
+    logger_delete(&file_logger_buffer_policy);
 
     return 0;
 }
