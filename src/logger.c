@@ -73,6 +73,9 @@ static const char * _level2string(log_level_t level) {
 static char *_string_new(const char *data) {
     size_t length = strlen(data) + 1;
     char *str = calloc(length, sizeof(char));
+    if (NULL == str) {
+        abort();
+    }
     strcpy(str, data);
     return str;
 }
@@ -81,6 +84,9 @@ static char *_string_cat(const char *a, const char *b) {
     size_t a_length = strlen(a);
     size_t b_length = strlen(b);
     char *str = calloc(a_length + b_length + 1, sizeof(char));
+    if (NULL == str) {
+        abort();
+    }
     strcpy(str, a);
     str += a_length;
     strcpy(str, b);
@@ -126,6 +132,9 @@ struct logger_t {
  */
 logger_t * stream_logger_new(const char *identifier, log_level_t level, FILE *stream) {
     logger_t *logger = malloc(sizeof(logger_t));
+    if (NULL == logger) {
+        return NULL;
+    }
     logger->_fd = (NULL != stream) ? stream : stderr;
     logger->_file_path = NULL;
     logger->_identifier = (NULL != identifier) ? _string_new(identifier) : "unknown";
@@ -142,7 +151,7 @@ logger_t * stream_logger_new(const char *identifier, log_level_t level, FILE *st
 #define _IS_FILE_LOGGER(_Logger)     ((NULL == (_Logger)->_file_path) ? 0 : 1)
 #define _FILE_LOGGER_MODE(_Mode)     ((LOG_MODE_APPEND == _Mode) ? "a" : "w")
 
-static void _logger_file_open(logger_t *logger, log_mode_t mode, const char *file_path) {
+static void _file_logger_open_file(logger_t *logger, log_mode_t mode, const char *file_path) {
     assert(NULL != logger);
     logger->_fd = fopen(file_path, _FILE_LOGGER_MODE(mode));
     if (NULL == logger->_fd) {
@@ -153,22 +162,25 @@ static void _logger_file_open(logger_t *logger, log_mode_t mode, const char *fil
     logger->_written_bytes = 0;
 }
 
-static void _logger_file_close(logger_t *logger) {
+static void _file_logger_close_file(logger_t *logger) {
     assert(NULL != logger && _IS_FILE_LOGGER(logger));
     fclose(logger->_fd);
     free(logger->_file_path);
     logger->_written_bytes = 0;
 }
 
-static void _logger_file_sweep(logger_t *logger) {
+static void _file_logger_sweep_file(logger_t *logger) {
     assert(NULL != logger && _IS_FILE_LOGGER(logger));
-    char *tmp = _string_new(logger->_file_path);         /** TODO: better memory handling (avoid malloc here and in _logger_file_open) **/
-    _logger_file_close(logger);
-    _logger_file_open(logger, LOG_MODE_WRITE, tmp);
-    free(tmp);
+    fclose(logger->_fd);
+    logger->_fd = fopen(logger->_file_path, _FILE_LOGGER_MODE(LOG_MODE_WRITE));
+    if (NULL == logger->_fd) {
+        fprintf(stderr, "Unable to open file: '%s'\n", logger->_file_path);
+        abort();
+    }
+    logger->_written_bytes = 0;
 }
 
-static void _logger_file_rotate(logger_t *logger) {
+static void _file_logger_rotate_file(logger_t *logger) {
     assert(NULL != logger && _IS_FILE_LOGGER(logger));
 
     char ext[128];
@@ -183,15 +195,24 @@ static void _logger_file_rotate(logger_t *logger) {
         sprintf(ext, ".%d", c + 1);
     }
 
-    char *tmp = _string_cat(logger->_file_path, ext);    /** TODO: better memory handling (avoid malloc here and in _logger_file_open) **/
-    _logger_file_close(logger);
-    _logger_file_open(logger, LOG_MODE_WRITE, tmp);
-    free(tmp);
+    char *tmp = _string_cat(logger->_file_path, ext);
+    _file_logger_close_file(logger);
+    logger->_fd = fopen(tmp, _FILE_LOGGER_MODE(LOG_MODE_WRITE));
+    if (NULL == logger->_fd) {
+        fprintf(stderr, "Unable to open file: '%s'\n", logger->_file_path);
+        abort();
+    }
+    logger->_file_path = tmp;
+    logger->_written_bytes = 0;
 }
 
-static logger_t * _logger_file_new(const char *identifier, log_level_t level, const char *file_path, log_mode_t mode, _log_policy_t policy, size_t bytes) {
+static logger_t * _file_logger_new(const char *identifier, log_level_t level, const char *file_path, log_mode_t mode,
+                                   _log_policy_t policy, size_t bytes) {
     logger_t *logger = malloc(sizeof(logger_t));
-    _logger_file_open(logger, mode, file_path);
+    if (NULL == logger) {
+        return NULL;
+    }
+    _file_logger_open_file(logger, mode, file_path);
     logger->_identifier = (NULL != identifier) ? _string_new(identifier) : "unknown";
     logger->_level = (LOG_LEVEL_DEBUG == level && NDEBUG != 0) ? LOG_LEVEL_NOTICE : level;
     logger->_policy = policy;
@@ -204,15 +225,15 @@ static logger_t * _logger_file_new(const char *identifier, log_level_t level, co
  * Public file logger constructors
  */
 logger_t * file_logger_new(const char *identifier, log_level_t level, const char *file_path, log_mode_t mode) {
-    return _logger_file_new(identifier, level, file_path, mode, _LOG_POLICY_NONE, 0);
+    return _file_logger_new(identifier, level, file_path, mode, _LOG_POLICY_NONE, 0);
 }
 
 logger_t * rotating_logger_new(const char *identifier, log_level_t level, const char *file_path, size_t bytes) {
-    return _logger_file_new(identifier, level, file_path, LOG_MODE_WRITE, _LOG_POLICY_ROTATE, bytes);
+    return _file_logger_new(identifier, level, file_path, LOG_MODE_WRITE, _LOG_POLICY_ROTATE, bytes);
 }
 
 logger_t * buffer_logger_new(const char *identifier, log_level_t level, const char *file_path, log_mode_t mode, size_t bytes) {
-    return _logger_file_new(identifier, level, file_path, mode, _LOG_POLICY_BUFFER, bytes);
+    return _file_logger_new(identifier, level, file_path, mode, _LOG_POLICY_BUFFER, bytes);
 }
 
 /*
@@ -221,7 +242,7 @@ logger_t * buffer_logger_new(const char *identifier, log_level_t level, const ch
 void logger_delete(logger_t **logger) {
     if (NULL != logger && NULL != *logger) {
         if (_IS_FILE_LOGGER(*logger)) {
-            _logger_file_close(*logger);
+            _file_logger_close_file(*logger);
         }
         free((*logger)->_identifier);
         free(*logger);
@@ -269,7 +290,7 @@ static void _apply_rotate_policy(logger_t *logger, log_level_t level, const char
     assert(NULL != logger && _IS_FILE_LOGGER(logger));
 
     if (logger->_written_bytes >= logger->_policy_bytes) {
-        _logger_file_rotate(logger);
+        _file_logger_rotate_file(logger);
     }
 
     _log(logger, level, format, args);
@@ -282,14 +303,14 @@ static void _apply_buffer_policy(logger_t *logger, log_level_t level, const char
     assert(NULL != logger && _IS_FILE_LOGGER(logger));
 
     if (logger->_written_bytes >= logger->_policy_bytes) {
-        _logger_file_sweep(logger);
+        _file_logger_sweep_file(logger);
     }
 
     _log(logger, level, format, args);
 }
 
 /*
- * Logging functions entrypoint
+ * Logging functions entry point
  */
 static void _apply_policy(logger_t *logger, log_level_t level, const char *format, va_list args) {
     assert(NULL != logger);
