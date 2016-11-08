@@ -33,7 +33,7 @@ typedef enum log_level_t {
     LOG_LEVEL_INFO,
     LOG_LEVEL_WARNING,
     LOG_LEVEL_ERROR,
-    LOG_LEVEL_FATAL,
+    LOG_LEVEL_FATAL
 } log_level_t;
 
 /*
@@ -41,7 +41,7 @@ typedef enum log_level_t {
  */
 typedef enum log_mode_t {
     LOG_MODE_WRITE = 0,
-    LOG_MODE_APPEND,
+    LOG_MODE_APPEND
 } log_mode_t;
 
 /*

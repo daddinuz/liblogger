@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.0)
 project(liblogger)
 
+set(CMAKE_C_FLAGS           "${CMAKE_C_FLAGS}           -std=c89 -Wall -Wextra")
+set(CMAKE_C_FLAGS_DEBUG     "${CMAKE_C_FLAGS_DEBUG}     -O0")
+set(CMAKE_C_FLAGS_RELEASE   "${CMAKE_C_FLAGS_RELEASE}   -O3")
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
@@ -19,19 +23,22 @@ set(      EXAMPLE_PATH       "${PROJECT_PATH}/examples")
 #####
 # Dependencies
 ###
+set(DEPS_LIST "")
 function(add_dependency TARGET PATH)
     file(GLOB FILES "${PATH}/*.c" "${PATH}/*.h")
     add_library("${TARGET}" "${FILES}")
+    set(DEPS_LIST ${DEPS_LIST} ${TARGET} PARENT_SCOPE)
 endfunction()
+include_directories("${DEPS_PATH}")
 
 add_dependency(ansicolor-w32 "${DEPS_PATH}/ansicolor-w32")
+add_dependency(extname "${DEPS_PATH}/extname")
 
 #####
 # Library
 ###
 add_library(logger "${SOURCE_FILES}")
-target_include_directories(logger PRIVATE "${DEPS_PATH}")
-target_link_libraries(logger ansicolor-w32)
+target_link_libraries(logger "${DEPS_LIST}")
 
 #####
 # Examples

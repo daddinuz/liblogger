@@ -13,6 +13,7 @@
 #include <time.h>
 
 #include "ansicolor-w32/ansicolor-w32.h"
+#include "extname/extname.h"
 #include "logger.h"
 
 
@@ -95,23 +96,12 @@ static char *_string_cat(const char *a, const char *b) {
 }
 
 /*
- * File utils
- */
-static const char *_file_ext(const char *filename) {
-    const char *dot = strrchr(filename, '.');
-    if(!dot || dot == filename) {
-        return "";
-    }
-    return dot + 1;
-}
-
-/*
  * _log_policy_t declaration
  */
 typedef enum _log_policy_t {
     _LOG_POLICY_NONE = 0,
     _LOG_POLICY_ROTATE,
-    _LOG_POLICY_BUFFER,
+    _LOG_POLICY_BUFFER
 } _log_policy_t;
 
 /*
@@ -184,7 +174,7 @@ static void _file_logger_rotate_file(logger_t *logger) {
     assert(NULL != logger && _IS_FILE_LOGGER(logger));
 
     char ext[128];
-    int c = atoi(_file_ext(logger->_file_path));
+    int c = atoi(extname(logger->_file_path));
     sprintf(ext, ".%d", c);
 
     char *start = NULL;
@@ -321,11 +311,14 @@ static void _apply_policy(logger_t *logger, log_level_t level, const char *forma
 
     switch (logger->_policy) {
         case _LOG_POLICY_NONE:
-            return _apply_none_policy(logger, level, format, args);
+            _apply_none_policy(logger, level, format, args);
+            break;
         case _LOG_POLICY_ROTATE:
-            return _apply_rotate_policy(logger, level, format, args);
+            _apply_rotate_policy(logger, level, format, args);
+            break;
         case _LOG_POLICY_BUFFER:
-            return _apply_buffer_policy(logger, level, format, args);
+            _apply_buffer_policy(logger, level, format, args);
+            break;
         default:
             abort();
     }
@@ -342,11 +335,11 @@ static void _apply_policy(logger_t *logger, log_level_t level, const char *forma
         va_end(args);                                                   \
     }
 
-DEFINE_LOGGER(debug, DEBUG);
-DEFINE_LOGGER(notice, NOTICE);
-DEFINE_LOGGER(info, INFO);
-DEFINE_LOGGER(warning, WARNING);
-DEFINE_LOGGER(error, ERROR);
-DEFINE_LOGGER(fatal, FATAL);
+DEFINE_LOGGER(debug, DEBUG)
+DEFINE_LOGGER(notice, NOTICE)
+DEFINE_LOGGER(info, INFO)
+DEFINE_LOGGER(warning, WARNING)
+DEFINE_LOGGER(error, ERROR)
+DEFINE_LOGGER(fatal, FATAL)
 
 #undef DEFINE_LOGGER

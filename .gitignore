@@ -1,6 +1,8 @@
 *.swp
 *.idea
 
+deps/
+
 lib/*
 !lib/.keep
 
