@@ -1,8 +1,9 @@
-# liblogger
+liblogger
+=========
 
 A logging library written in ANSI C.
 
-### Installation
+## Installation
 
 #### Cloning and CMaking
 
@@ -41,7 +42,7 @@ $ clib install daddinuz/liblogger
 unlikely using clib means that no building system is provided and you will 
 have to compile liblogger by yourself. 
 
-### Description
+## Description
 
 Currently liblogger supports 4 types of loggers:
 
@@ -55,9 +56,9 @@ bytes for applying a policy are reached while performing a log function, the pol
 will be applied the next time a log function is called, preserving the integrity of your logs. 
 
 By default, if a stream logger is set to stdout it will use colors;
-in order to disable colors define at compile time the macro **NCOLORS** to 1
+in order to disable colors define at compile time the macro **NCOLOR**=1
 
-### Log levels
+## Log levels
 
 - **LOG_LEVEL_DEBUG**: 0
 - **LOG_LEVEL_NOTICE**: 1
@@ -66,9 +67,9 @@ in order to disable colors define at compile time the macro **NCOLORS** to 1
 - **LOG_LEVEL_ERROR**: 4
 - **LOG_LEVEL_FATAL**: 5
 
-Setting NDEBUG will not log debug messages no matter what the log level is.
+Setting **NDEBUG**=1 will not log debug messages no matter what the log level is.
 
-### Example
+## Example
 
 ```C
 #include "logger.h"
@@ -104,6 +105,6 @@ ERROR   [Wed Nov  9 19:58:17 2016 UTC] -- (ExampleStreamLogger): Error log
 FATAL   [Wed Nov  9 19:58:17 2016 UTC] -- (ExampleStreamLogger): Fatal log
 ```
 
-### License 
+## License 
 
 MIT
