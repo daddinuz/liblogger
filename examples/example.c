@@ -11,6 +11,18 @@
  */
 int main(void) {
     /*
+     * Unspecified Logger - Stdout
+     */
+    logger_t *logger = stream_logger_new(NULL, LOG_LEVEL_DEBUG, stdout);
+    log_debug   (logger, TRACE("Debug log\n\n"));
+    log_notice  (logger, TRACE("Notice log\n\n"));
+    log_info    (logger, TRACE("Info log\n\n"));
+    log_warning (logger, TRACE("Warning log\n\n"));
+    log_error   (logger, TRACE("Error log\n\n"));
+    log_fatal   (logger, TRACE("Fatal log\n\n"));
+    logger_delete(&logger);
+
+    /*
      * Stream Logger - Stdout
      */
     logger_t *stream_logger_stdout = stream_logger_new("StreamLogger - Stdout", LOG_LEVEL_DEBUG, stdout);

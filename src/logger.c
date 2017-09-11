@@ -127,7 +127,7 @@ logger_t * stream_logger_new(const char *identifier, log_level_t level, FILE *st
     }
     logger->_fd = (NULL != stream) ? stream : stderr;
     logger->_file_path = NULL;
-    logger->_identifier = (NULL != identifier) ? _string_new(identifier) : "unknown";
+    logger->_identifier = _string_new((NULL != identifier) ? identifier : "unknown");
     logger->_level = (LOG_LEVEL_DEBUG == level && NDEBUG != 0) ? LOG_LEVEL_NOTICE : level;
     logger->_policy = _LOG_POLICY_NONE;
     logger->_policy_bytes = 0;
@@ -203,7 +203,7 @@ static logger_t * _file_logger_new(const char *identifier, log_level_t level, co
         return NULL;
     }
     _file_logger_open_file(logger, mode, file_path);
-    logger->_identifier = (NULL != identifier) ? _string_new(identifier) : "unknown";
+    logger->_identifier = _string_new((NULL != identifier) ? identifier : "unknown");
     logger->_level = (LOG_LEVEL_DEBUG == level && NDEBUG != 0) ? LOG_LEVEL_NOTICE : level;
     logger->_policy = policy;
     logger->_policy_bytes = bytes;
