@@ -3,6 +3,10 @@ liblogger
 
 A logging library written in ANSI C.
 
+## WARNING
+
+This library is **DEPRECATED** use [this](https://github.com/daddinuz/logger) instead.
+
 ## Installation
 
 #### Cloning and CMaking
